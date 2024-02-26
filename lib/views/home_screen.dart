@@ -30,10 +30,9 @@ class HomeScreen extends StatelessWidget {
             Text(
               "News API",
               style: TextStyle(
-                color: Colors.blue,
-                fontSize: 48.0,
-                fontWeight: FontWeight.bold
-              ),
+                  color: Colors.blue,
+                  fontSize: 48.0,
+                  fontWeight: FontWeight.bold),
             ),
             Text("Please search for news"),
             Text('Powered by NewsAPI')
@@ -92,7 +91,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
               itemBuilder: (context, index) {
                 var data = newsModel[index];
                 return InkWell(
-                  onTap: () => context.goNamed('details',extra:data),
+                  onTap: () => context.goNamed('details', extra: data),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: 2.0, horizontal: 16.0),
@@ -129,8 +128,8 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildSuggestions(BuildContext context) {
     return BlocProvider(
-      create: (context) => NewsBloc(NewsServices())
-        ..add(const LoadEvent(search: "apple")),
+      create: (context) =>
+          NewsBloc(NewsServices())..add(const LoadEvent(search: "a")),
       child: BlocBuilder<NewsBloc, NewsState>(builder: (context, state) {
         if (state is LoadingState) {
           return const Center(
@@ -141,40 +140,48 @@ class CustomSearchDelegate extends SearchDelegate<String> {
             child: Text(state.error),
           );
         } else if (state is LoadedState) {
-          List<NewsModel> newsModel = state.news.take(3).toList();
-          return ListView.builder(
-              itemCount: newsModel.length,
-              itemBuilder: (context, index) {
-                var data = newsModel[index];
-                return InkWell(
-                  onTap: () => context.goNamed('details',extra:data),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 2.0, horizontal: 16.0),
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          children: [
-                            Text(
-                              data.title.toString(),
-                              style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(
-                              height: 6,
-                            ),
-                            Image.network(data.urlToImage != null
-                                ? data.urlToImage.toString()
-                                : 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg'),
-                            Text(data.description.toString()),
-                          ],
+          List<NewsModel> newsModel = state.news
+              .where((news) =>
+                  news.title!.toLowerCase().contains(query.toLowerCase()))
+              .toList();
+          // List<NewsModel> newsModel = state.news;
+          if (newsModel.isNotEmpty) {
+            return ListView.builder(
+                itemCount: newsModel.length,
+                itemBuilder: (context, index) {
+                  var data = newsModel[index];
+                  return InkWell(
+                    onTap: () => context.goNamed('details', extra: data),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 2.0, horizontal: 16.0),
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                data.title.toString(),
+                                style: const TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(
+                                height: 6,
+                              ),
+                              Image.network(data.urlToImage != null
+                                  ? data.urlToImage.toString()
+                                  : 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg'),
+                              Text(data.description.toString()),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              });
+                  );
+                });
+          } else {
+            return const Center(child: Text("No News Found"));
+          }
         }
         return Container();
       }),
